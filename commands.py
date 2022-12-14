@@ -1,34 +1,12 @@
-import discord
 import datetime
-from datetime import datetime
-import self as self
-from discord.ext import commands, tasks
-from discord.ext.commands import bot
-import tracemalloc
-import random
-import asyncio
 import json
+from datetime import datetime
+
+import discord
 import discord.utils
-import os
-import aiocron
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
-from inspect import currentframe, getframeinfo
-import sys
-from dislash import InteractionClient, ActionRow, Button, ButtonStyle
-from discord.utils import find, get
-import os.path
-import module
-import youtube_dl
-from discord.ext.commands import MissingPermissions
-import time
-import threading
-from itertools import cycle
+from discord.ext import commands
+
 # pip install pyfiglet
-import pyfiglet
-from termcolor import colored
-import schedule
-import sqlite3
 
 """
 All commands for The Knight Bot
@@ -42,7 +20,7 @@ def get_prefix(message):
     return prefixes[str(message.guild.id)]
 
 
-class cogs(commands.Cog):
+class General_Commands(commands.Cog):
     def __init__(self, Bot):
         self.bot = Bot
 
@@ -54,34 +32,33 @@ class cogs(commands.Cog):
             prefixes = json.load(f)
         print(
             f'{datetime.now()}: {ctx.message.author} executed command - {prefixes[str(ctx.guild.id)]}{ctx.invoked_with}')
-        guild = ctx.guild
+
         server_id = ctx.message.guild.id
-        for guild in bot.guilds:
-            if discord.utils.get(guild.text_channels, name="bot-chat"):
-                def v0():
-                    channel = discord.utils.get(ctx.guild.channels, name="bot-chat")
-                    bot_chat_id = channel.id
-                    print(f"ID for channel #Quote {bot_chat_id}")
+        if discord.utils.get(ctx.guild.text_channels, name="bot-chat"):
+            def v0():
+                channel = discord.utils.get(ctx.guild.channels, name="bot-chat")
+                bot_chat_id = channel.id
+                print(f"ID for channel #Quote {bot_chat_id}")
 
-                print(f'Channel #bot-chat´already exist in server, server ID: {server_id}')
-                await ctx.send("There is already a channel in this server with the name 'bot-chat'")
-                v0()
-            else:
-                create_channel = await guild.create_text_channel('bot-chat')
-                print(create_channel.id)
+            print(f'Channel #bot-chat´already exist in server, server ID: {server_id}')
+            await ctx.send("There is already a channel in this server with the name 'bot-chat'")
+            v0()
+        else:
+            create_channel = await ctx.guild.create_text_channel('bot-chat')
+            print(create_channel.id)
 
-            if discord.utils.get(guild.text_channels, name="quotes"):
-                def v1():
-                    channel = discord.utils.get(ctx.guild.channels, name="quotes")
-                    quote_id = channel.id
-                    print(f"ID for channel #Quote {quote_id}")
+        if discord.utils.get(ctx.guild.text_channels, name="quotes"):
+            def v1():
+                channel = discord.utils.get(ctx.guild.channels, name="quotes")
+                quote_id = channel.id
+                print(f"ID for channel #Quote {quote_id}")
 
-                await ctx.send("There is already a channel in this server with the name 'quotes'")
-                print(f'Channel #quotes already exist in server, server ID: {server_id}')
-                v1()
-            else:
-                q_channel = await guild.create_text_channel('quotes')
-                print(q_channel.id)
+            await ctx.send("There is already a channel in this server with the name 'quotes'")
+            print(f'Channel #quotes already exist in server, server ID: {server_id}')
+            v1()
+        else:
+            q_channel = await ctx.guild.create_text_channel('quotes')
+            print(q_channel.id)
 
     """    
     # The quote command
@@ -151,46 +128,6 @@ class cogs(commands.Cog):
     async def welcome(self, ctx):
         await ctx.send('Available Setup Commands \nwelcome channel <#channel>\nwelcome text <message>')
 
-    @welcome.command()
-    async def channel(self, ctx, channel: discord.TextChannel):
-        if ctx.message.author.guild_permissions.manage_messages:
-            db = sqlite3.connect('testdb.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT channel_id FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
-            if result is None:
-                sql = "INSERT INTO main (guild_id, channel_id) VALUES(?,?)"
-                val = (ctx.guild.id, channel.id)
-                await ctx.send(f"Channel has been set to {channel.mention}")
-            elif result is not None:
-                sql = "UPDATE main  SET channel_id = ? WHERE guild_id = ?"
-                val = (ctx.guild.id, channel.id)
-                await ctx.send(f"Channel has been updated to {channel.mention}")
-            cursor.execute(sql, val)
-            db.commit()
-            cursor.close()
-            db.close()
-
-    @welcome.command()
-    async def channel(self, ctx, *, text):
-        if ctx.message.author.guild_permissions.manage_messages:
-            db = sqlite3.connect('testdb.sqlite')
-            cursor = db.cursor()
-            cursor.execute(f"SELECT msg FROM main WHERE guild_id = {ctx.guild.id}")
-            result = cursor.fetchone()
-            if result is None:
-                sql = "INSERT INTO main (guild_id, msg) VALUES(?,?)"
-                val = (ctx.guild.id, text)
-                await ctx.send(f"Message has been set to `{text}`")
-            elif result is not None:
-                sql = "UPDATE main  SET msg = ? WHERE guild_id = ?"
-                val = (ctx.guild.id, text)
-                await ctx.send(f"Message has been updated to `{text}`")
-            cursor.execute(sql, val)
-            db.commit()
-            cursor.close()
-            db.close()
-
 
 def setup(bot):
-    bot.add_cog(cogs(bot))
+    bot.add_cog(General_Commands(bot))

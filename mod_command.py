@@ -1,38 +1,26 @@
 # Moderator commands
-import discord
 import datetime
-from datetime import datetime
-import self as self
-from discord.ext import commands, tasks
-from discord.ext.commands import bot
-import tracemalloc
-import random
-import asyncio
 import json
+from datetime import datetime
+
+import discord
 import discord.utils
-import os
-import aiocron
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
-from inspect import currentframe, getframeinfo
-import sys
-from dislash import InteractionClient, ActionRow, Button, ButtonStyle
-from discord.utils import find, get
-import os.path
-import module
-import youtube_dl
-from discord.ext.commands import MissingPermissions
-import time
-import threading
-from itertools import cycle
 # pip install pyfiglet
 import pyfiglet
-from termcolor import colored
-import schedule
-import sqlite3
+from discord.ext import commands
+from discord.ext.commands import MissingPermissions
+from discord.ext.commands import Bot
+from configparser import ConfigParser
+
+# Config File
+file = 'config.ini'
+config = ConfigParser()
+config.read(file)
+phy = "316673884172582922"
+scream = "355056076862914561"
 
 
-class cogs(commands.Cog):
+class Mod(commands.Cog):
     def __init__(self, Bot):
         self.bot = Bot
 
@@ -44,11 +32,6 @@ class cogs(commands.Cog):
     @commands.command(name='kick')
     @commands.has_permissions(kick_members=True)
     async def kick(self, ctx, member: discord.Member = None, *, reason=None):
-        with open('prefixes.json', 'r') as f:
-            prefixes = json.load(f)
-        print(
-            f'{datetime.now()}: {ctx.message.author} executed command - {prefixes[str(ctx.guild.id)]}{ctx.invoked_with}')
-
         if member is None:
             await ctx.message.channel.send(
                 embed=discord.Embed(
@@ -91,11 +74,6 @@ class cogs(commands.Cog):
     @commands.command(name='ban')
     @commands.has_permissions(ban_members=True)
     async def ban(self, ctx, member: discord.Member = None, *, reason=None):
-        with open('prefixes.json', 'r') as f:
-            prefixes = json.load(f)
-        print(
-            f'{datetime.now()}: {ctx.message.author} executed command - {prefixes[str(ctx.guild.id)]}{ctx.invoked_with}')
-
         Staff = discord.utils.get(ctx.guild.roles, name='Staff')
 
         if member == None:
@@ -133,7 +111,7 @@ class cogs(commands.Cog):
                                                                                f' \n **Reason:** ' + reason,
                                 color=0xf30000)
 
-        a_log_channel = bot.get_channel(902599258857955348)
+        a_log_channel = Bot.get_channel(902599258857955348)
         await a_log_channel.send(embed=ban_log)
         await ctx.send(embed=ban_log)
         print(f'User **' + member.display_name + f'** has been banned by '
@@ -150,11 +128,6 @@ class cogs(commands.Cog):
     @commands.command(name='unban', pass_context=True)
     @commands.has_permissions(ban_members=True)
     async def unban(self, ctx, *, member: discord.Member = None):
-        with open('prefixes.json', 'r') as f:
-            prefixes = json.load(f)
-        print(
-            f'{datetime.now()}: {ctx.message.author} executed command - {prefixes[str(ctx.guild.id)]}{ctx.invoked_with}')
-
         banned_user = await ctx.guild.bans()
         member_name, member_discriminator = member.split("#")
         for ban_entry in banned_user:
@@ -166,7 +139,7 @@ class cogs(commands.Cog):
                         description=f'**{ctx.message.author}**, please mention somebody to ban.', color=0xFFC200))
 
             if (user.name, user.discriminator) == (member_name, member_discriminator):
-                log_channel = bot.get_channel(902599258857955348)
+                log_channel = Bot.get_channel(902599258857955348)
                 await ctx.guild.unban(user)
                 embed = discord.Embed(description=f"**{ctx.message.author}** unbanned {user.mention}!")
                 save_log_unban = discord.Embed(description=f"**{ctx.message.author}** unbanned {user.mention}!")
@@ -186,12 +159,7 @@ class cogs(commands.Cog):
     @commands.command(name='mute')
     @commands.has_permissions(kick_members=True)
     async def mute(self, ctx, member: discord.Member = None, *, reason=None):
-        with open('prefixes.json', 'r') as f:
-            prefixes = json.load(f)
-        print(
-            f'{datetime.now()}: {ctx.message.author} executed command - {prefixes[str(ctx.guild.id)]}{ctx.invoked_with}')
-
-        log_channel = bot.get_channel(902599258857955348)
+        log_channel = Bot.get_channel(902599258857955348)
         add_role = discord.utils.get(ctx.guild.roles, name='Muted')
 
         if member == None:
@@ -236,13 +204,8 @@ class cogs(commands.Cog):
     @commands.command(name='unmute', pass_context=True)
     @commands.has_permissions(kick_members=True)
     async def unmute(self, ctx, member: discord.Member):
-        with open('prefixes.json', 'r') as f:
-            prefixes = json.load(f)
-        print(
-            f'{datetime.now()}: {ctx.message.author} executed command - {prefixes[str(ctx.guild.id)]}{ctx.invoked_with}')
-
         muted_role = discord.utils.get(ctx.guild.roles, name='Muted')
-        log_channel = bot.get_channel(902599258857955348)
+        log_channel = Bot.get_channel(902599258857955348)
 
         guild = ctx.guild
         user = member
@@ -280,24 +243,13 @@ class cogs(commands.Cog):
     @commands.command(aliases=["msgclear"])
     @commands.has_permissions(kick_members=True)
     async def clear(self, ctx, amount):
-        with open('prefixes.json', 'r') as f:
-            prefixes = json.load(f)
-        print(
-            f'{datetime.now()}: {ctx.message.author} executed command - {prefixes[str(ctx.guild.id)]}{ctx.invoked_with}')
-
         amount = int(amount)
-        await ctx.channel.purge(limit=amount)
+        await ctx.channel.purge(limit=amount + 1)
         await ctx.send(f"{amount} messages deleted!", delete_after=5)
-        print(f"{amount} messages deleqed!")
 
     # Check bots ping
     @commands.command()
     async def ping(self, ctx):
-        with open('prefixes.json', 'r') as f:
-            prefixes = json.load(f)
-        print(
-            f'{datetime.now()}: {ctx.message.author} executed command - {prefixes[str(ctx.guild.id)]}{ctx.invoked_with}')
-
         await ctx.send(f'**Pong!** {round(self.bot.latency * 1000)}ms ')
 
     """
@@ -308,13 +260,7 @@ class cogs(commands.Cog):
     """
 
     @commands.command()
-    @commands.has_permissions(administrator=True)
     async def changeprefix(self, ctx, prefix):
-        with open('prefixes.json', 'r') as f:
-            prefixes = json.load(f)
-        print(
-            f'{datetime.now()}: {ctx.message.author} executed command - {prefixes[str(ctx.guild.id)]}{ctx.invoked_with}')
-
         with open('../json/prefixes.json', 'r') as f:
             prefixes = json.load(f)
 
@@ -323,8 +269,89 @@ class cogs(commands.Cog):
         with open('../json/prefixes.json', 'w') as f:
             json.dump(prefixes, f, indent=4)
 
+    @commands.command(pass_context=True)
+    @commands.has_permissions(administrator=True)
+    async def invite(self, ctx):
+        await ctx.message.delete()
+        # Creating an invite link
+        link = await ctx.channel.create_invite(xkcd=True, max_age=0, max_uses=0)
+        # max_age = 0 The invite link will never exipre.
+        # max_uses = 0 Infinite users can join throught the link.
+        # -----------------------------------------------------#
 
+        # -------Embed Time-----#
+        em = discord.Embed(title=f"Join The {ctx.guild.name} Discord Server Now!", url=link,
+                           description=f"**{ctx.guild.member_count} Members** [**JOIN**]({link})\n\n**Invite link for {ctx.channel.mention} is created.**\nNumber of uses: **Infinite**\nLink Expiry Time: **Never**",
+                           color=0x303037)
+
+        # Embed Footer
+        em.set_footer(text=f"Made by </{ctx.message.author}")
+
+        # Embed Thumbnail Image
+        em.set_thumbnail(url=ctx.guild.icon_url)
+
+        # Embed Author
+        em.set_author(name="INSTANT SERVER INVITE")
+        # -----------------------------------------#
+        await ctx.send(f"> {link}", embed=em)
+
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def rules(self, ctx):
+        await ctx.message.delete()
+
+        def rules_message():
+            print(f"Sending Rules.Embed to #Rules \n Channel ID: {cid}")
+            global rules_embed
+            rules_embed = discord.Embed(
+                title='RULES & INFORMATION',
+                description="Welcome to Eivee's Community Discord server, here you can get support, help and chat with new people or even come up with new ideas to Eivee! \n",
+                color=discord.Color.purple())
+            rules_embed.add_field(name='\u200b',
+                                  value="These rules includes to all channels and Voice-Channels!!! \nFollow the rules as good you can or there can be consequences or just a warning depending on the situation",
+                                  inline=False)
+            rules_embed.add_field(name="\u200b", value="\u200b")
+            rules_embed.add_field(name="`[1]` No spamming",
+                                  value='```This includes mentioning a user repeatedly \nSending same message multiple times '
+                                        '\nUnnecessary spam of meaning less letters, symbols and numbers, for example "nbtue9567434je#¤%&/("```',
+                                  inline=False)
+            rules_embed.add_field(name="`[2]` No NSFW content",
+                                  value='```For example half/fully nude pictures \nAdult content```', inline=False)
+            rules_embed.add_field(name="`[3]` Use common sense",
+                                  value='```Do not annoy or tick off the mods \nFollow the Discord TOS (Terms Of Service)```',
+                                  inline=False)
+            rules_embed.add_field(name="`[4]` Discord TOS",
+                                  value='```Follow the Discord TOS (Terms Of Service), if you do not know what the TOS says then you can read about it in the link that you find in the end of this embed!```',
+                                  inline=False)
+            rules_embed.add_field(name="`[5]` Use channels for their purpose",
+                                  value='```Try to use the channels for their purpose and nothing else, if you are not sure'
+                                        ' what channel to go to then we recommend you to read the channel description. '
+                                        'You can find them either here further down or in the top of each channel```')
+            rules_embed.add_field(name="`[6]` Keep chats in same language", inline=False,
+                                  value='```We want all chats to be either in English or Swedish, to make it easier for the staff to moderate and keep the chats in a good level.```')
+            rules_embed.add_field(name="\u200b", value="\u200b")
+            rules_embed.add_field(name="Discord TOS (Terms Of Service)", inline=False,
+                                  value="[TOS](https://discord.com/terms)")
+            rules_embed.set_footer(text='In progress...')
+            rules_embed.set_thumbnail(url=ctx.guild.icon_url)
+
+        if ctx.message.author.id == phy or ctx.message.author.id == scream:
+            server_id = ctx.message.guild.id
+            if channeli := discord.utils.get(ctx.guild.text_channels, name="rules"):
+                cid = channeli.id
+                print(cid)
+                """channel = Bot.get_channel(cid)"""
+                print(f'Channel #Rules´already exist in server, server ID: {server_id}')
+                rules_message()
+                await self.bot.get_channel(cid).send(embed=rules_embed)
+            else:
+                channeli = await ctx.guild.create_text_channel('rules')
+                cid = channeli.id
+                rules_message()
+                await self.bot.get_channel(cid).send(embed=rules_embed)
+        else:
+            return
 
 
 def setup(bot):
-    bot.add_cog(cogs(bot))
+    bot.add_cog(Mod(bot))

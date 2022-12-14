@@ -1,10 +1,11 @@
 # Imports
+import aiosqlite
 import discord
 import datetime
 from datetime import datetime
 import self as self
 from discord.ext import commands, tasks
-from discord.ext.commands import bot
+from discord.ext.commands import Bot
 import tracemalloc
 import random
 import asyncio
@@ -37,6 +38,13 @@ BOT JOINS SERVER/AUTO MESSAGES
 """
 
 
+def load_pre():
+    global f
+    with open('../json/prefixes.json', 'r') as f:
+        global prefixes
+        prefixes = json.load(f)
+
+
 # Bot joins server/auto msg
 
 
@@ -50,14 +58,12 @@ class bot_starter(commands.Cog):
     async def on_guild_join(self, guild):
         print(
             f"\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n \n{self.bot.user.name} joined *{guild.name}* \n   Server ID: {guild.id} \n   Amount of members: {len(guild.members)}")
-
-        with open('../json/prefixes.json', 'r') as f:
-            prefixes = json.load(f)
+        print()
+        load_pre()
 
         prefixes[str(guild.id)] = '?'
 
-        with open('../json/prefixes.json', 'w') as f:
-            json.dump(prefixes, f, indent=4)
+        json.dump(prefixes, f, indent=4)
 
         join_bed = discord.Embed(title="\n",
                                  description=f"Hi everyone, I'm **{self.bot.user.name}** I hope you all are going to "
@@ -101,21 +107,29 @@ class bot_starter(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
-        with open('../json/prefixes.json', 'r') as f:
-            prefixes = json.load(f)
-
-        prefixes.pop(str(guild.id))
-
-        with open('../json/prefixes.json', 'w') as f:
-            json.dump(prefixes, f, indent=4)
+        print("")
 
     # Bot is online
     @commands.Cog.listener()  # this is a decorator for events/listeners
     async def on_ready(self):
         # The first embed that's sent
+
         print(
             f'\n{datetime.now()}: \nBot logged in as {self.bot.user.name} \n   ID: {self.bot.user.id}\n   Discord.py '
-            f'Version: {discord.__version__} \n Servers: {len(self.bot.guilds)} \n')
+            f'Version: {discord.__version__} \n')
+        print(f'Status: \n'
+              f'    Servers: {len(self.bot.guilds)}')
+        for guild in self.bot.guilds:
+            guild_name = f'Guild Name: {guild.name}'
+            guild_id = f'       Guild ID: {guild.id}'
+            guild_member_count = f'Member Count: {guild.member_count}'
+
+            # Server names can't be longer than 30 characters | 42 characters in total
+            dguild_name =  guild_name[:42] + (guild_name[42:] and '..')
+            print('     ', dguild_name, (50-len(dguild_name))*' ', '|', end="")
+            print(' ', guild_id, (39-len(guild_id))*' ', '|', end="")
+            print('     ', guild_member_count)
+
         print()
 
     # Member joined server

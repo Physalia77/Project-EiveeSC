@@ -1,12 +1,21 @@
 # Imports
-from main import *
+import datetime
+import json
+from datetime import datetime
+
+import discord
+import discord.utils
+import youtube_dl
+from discord.ext import commands
+
+# pip install pyfiglet
 
 """
 Voice-Chat commands
 """
 
 
-class cogs(commands.Cog):
+class VC(commands.Cog):
     def init(self, Bot):
         pass
 
@@ -79,4 +88,4 @@ class cogs(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(cogs(bot))
+    bot.add_cog(VC(bot))

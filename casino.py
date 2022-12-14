@@ -1,34 +1,12 @@
-import discord
-import datetime
-from datetime import datetime
-import self as self
-from discord.ext import commands, tasks
-from discord.ext.commands import bot
-import tracemalloc
-import random
 import asyncio
+import datetime
 import json
-import discord.utils
-import os
-import aiocron
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
+import random
+from datetime import datetime
 from inspect import currentframe, getframeinfo
-import sys
-from dislash import InteractionClient, ActionRow, Button, ButtonStyle
-from discord.utils import find, get
-import os.path
-import module
-import youtube_dl
-from discord.ext.commands import MissingPermissions
-import time
-import threading
-from itertools import cycle
-# pip install pyfiglet
-import pyfiglet
-from termcolor import colored
-import schedule
-import sqlite3
+import discord
+import discord.utils
+from discord.ext import commands
 
 """MONEY SYSTEM"""
 """"Bank"""
@@ -70,14 +48,14 @@ async def update_bank(user, change=0, mode="Wallet"):
 
     users[str(user.id)][mode] += change
 
-    with open("bank.json", 'r') as f:
+    with open("bank.json", 'w') as f:
         json.dump(users, f)
     bal = [users[str(user.id)]["Wallet"], users[str(user.id)]["Bank"], users[str(user.id)]["Wins"],
            users[str(user.id)]["Earned"], users[str(user.id)]["Losses"], users[str(user.id)]["Lost"]]
     return bal
 
 
-class cogs(commands.Cog):
+class Casino(commands.Cog):
     def init(self, Bot):
         pass
 
@@ -307,6 +285,9 @@ class cogs(commands.Cog):
                     print("User lost the Dice game")
 
                     users[str(user.id)]["Wallet"] -= bet
+                    users[str(user.id)]["Losses"] += 1
+                    users[str(user.id)]["Lost"] -= bet
+                    users["GLost"] -= bet
 
                     with open("bank.json", 'w') as f:
 
@@ -345,6 +326,8 @@ class cogs(commands.Cog):
             )
             await ctx.send(embed=random.choice(errormsg), delete_after=7)
 
+    """fixed the this shit"""
+
     @commands.command()
     @commands.cooldown(rate=1, per=4)
     async def slot(self, ctx, bet: int = None):
@@ -353,6 +336,7 @@ class cogs(commands.Cog):
         print(
             f'{datetime.now()}: {ctx.message.author} executed command - {prefixes[str(ctx.guild.id)]}{ctx.invoked_with}')
 
+        # Variables & def
         user = ctx.author
         users = await get_bank_data()
         slots1 = (
@@ -388,6 +372,72 @@ class cogs(commands.Cog):
         S1 = random.choice(slots1)
         S2 = random.choice(slots2)
         S3 = random.choice(slots3)
+
+        usd = "💲💲💲"
+
+        async def message():
+            slotbed = discord.Embed(title=f"Slot Machine: You beted {bet}, lets see if you win",
+                                    description=f"❔ ❔ ❔", color=discord.Color.light_gray())
+            slotbedS1 = discord.Embed(title=f"Slot Machine: You beted {bet}, lets see if you win",
+                                      description=f"{S1} ❔ ❔", color=discord.Color.light_gray())
+            slotbedS2 = discord.Embed(title=f"Slot Machine: You beted {bet}, lets see if you win",
+                                      description=f"{S1, S2} ❔", color=discord.Color.light_gray())
+            slotbedS3 = discord.Embed(title=f"Slot Machine: You beted {bet}, lets see if you win",
+                                      description=f"{S1, S2, S3}", color=discord.Color.light_gray())
+            global message
+            message = await ctx.send(embed=slotbed)
+
+            await asyncio.sleep(1)
+            await message.edit(embed=slotbedS1)
+            await asyncio.sleep(1)
+            await message.edit(embed=slotbedS2)
+            await asyncio.sleep(1)
+            await message.edit(embed=slotbedS3)
+
+        async def lose():
+            global message
+            slotlose = discord.Embed(title=f"Sorry, you just lost {bet} coins",
+                                     description=f"{S1, S2, S3}", color=discord.Color.red())
+            await message.edit(embed=slotlose)
+            print(
+                f'S3 = False \n {ctx.author} beted {bet} and lost it all \n Wallet Before: {users[str(user.id)]["Wallet"]}'
+                f' \n Current Wallet:{users[str(user.id)]["Wallet"] - bet} test \n ----------------')
+
+            users[str(user.id)]["Wallet"] -= bet
+            users[str(user.id)]["Losses"] += 1
+            users[str(user.id)]["Lost"] -= bet
+            users["GLost"] -= bet
+
+        async def win():
+            global message
+            slotwon = discord.Embed(title=f"Congrats!!! You just won {bet * 10} coins",
+                                    description=f"{S1, S2, S3}", color=discord.Color.green())
+
+            print(
+                f"""S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]}
+                 \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------""")
+
+            await message.edit(embed=slotwon)
+
+            users[str(user.id)]["Wallet"] += bet * 10
+            users[str(user.id)]["Wins"] += 1
+            users[str(user.id)]["Earned"] += bet * 10
+            users["GEarned"] += bet * 10
+
+        async def jackpot():
+            global message
+            slotjackpot = discord.Embed(title=f"CONGRATS, YOU WON THE JACKPOT {bet * 1000} {usd}",
+                                        description=f"{S1, S2, S3}", color=discord.Color.dark_green())
+            print(
+                f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]}'
+                f' \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
+            await message.edit(embed=slotjackpot)
+            users[str(user.id)]["Wallet"] += bet * 1000
+            users[str(user.id)]["Wins"] += 1
+            users[str(user.id)]["Earned"] += bet * 1000
+            users["GEarned"] += bet
+
+        # Code
         if bet is None:
             error_slot = discord.Embed(title=f"ERROR!",
                                        description=f"You must place a bet! The lowest amount of coins you can bet is 100 or highest is 100,000.",
@@ -412,368 +462,102 @@ class cogs(commands.Cog):
             return await ctx.send(embed=error_slot)
 
         else:
-
-            slotbed = discord.Embed(title=f"Slot Machine: You beted {bet}, lets see if you win",
-                                    description=f"❔ ❔ ❔", color=discord.Color.light_gray())
-            slotbedS1 = discord.Embed(title=f"Slot Machine: You beted {bet}, lets see if you win",
-                                      description=f"{S1} ❔ ❔", color=discord.Color.light_gray())
-            slotbedS2 = discord.Embed(title=f"Slot Machine: You beted {bet}, lets see if you win",
-                                      description=f"{S1, S2} ❔", color=discord.Color.light_gray())
-            slotbedS3 = discord.Embed(title=f"Slot Machine: You beted {bet}, lets see if you win",
-                                      description=f"{S1, S2, S3}", color=discord.Color.light_gray())
-            message = await ctx.send(embed=slotbed)
-
-            await asyncio.sleep(1)
-            await message.edit(embed=slotbedS1)
-            await asyncio.sleep(1)
-            await message.edit(embed=slotbedS2)
-            await asyncio.sleep(1)
-            await message.edit(embed=slotbedS3)
-
-            usd = "💲💲💲"
-            slotjackpot = discord.Embed(title=f"CONGRATS, YOU WON THE JACKPOT {bet * 1000} {usd}",
-                                        description=f"{S1, S2, S3}", color=discord.Color.dark_green())
-            slotlose = discord.Embed(title=f"Sorry, you just lost {bet} coins",
-                                     description=f"{S1, S2, S3}", color=discord.Color.red())
-            slotwon = discord.Embed(title=f"Congrats!!! You just won {bet * 10} coins",
-                                    description=f"{S1, S2, S3}", color=discord.Color.green())
+            await message()
 
             if S1 == S2 == S3:  # Green Circle
-                print(
-                    f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-                await message.edit(embed=slotjackpot)
-                users[str(user.id)]["Wallet"] += bet * 1000
-                users[str(user.id)]["Wins"] += 1
-                users[str(user.id)]["Earned"] += bet * 1000
-                users["GEarned"] += bet
+                jackpot()
 
             if S1 == "💛":  # Yellow
                 print("Yes S1 Yellow")
                 if S2 == "💛":  # Yellow
                     print("Yes S2 Yellow")
                     if S3 == "💛":  # Yellow
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                     elif S3 == "🖤":  # Black
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                     elif S3 == "❤":  # Red
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                 if S2 == "🖤":  # Black
                     print("Yes S2 Black")
                     if S3 == "💛":  # Yellow
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                     elif S3 == "🖤":  # Black
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                     elif S3 == "❤":  # Red
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                 if S2 == "❤":  # Red
                     print("Yes S2 Red")
                     if S3 == "💛":  # Yellow
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                     elif S3 == "🖤":  # Black
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                     elif S3 == "❤":  # Red
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
             if S1 == "🖤":  # Black
                 print("Yes S1 Black")
                 if S2 == "💛":  # Yellow
                     print("Yes S2 Yellow")
                     if S3 == "💛":  # Yellow
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                     elif S3 == "🖤":  # Black
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                     elif S3 == "❤":  # Red
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                 if S2 == "🖤":  # Black
                     print("Yes S2 Black")
                     if S3 == "💛":  # Yellow
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                     elif S3 == "🖤":  # Black
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                     elif S3 == "❤":  # Red
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                 if S2 == "❤":  # Red
                     print("Yes S2 Red")
                     if S3 == "💛":  # Yellow
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                     elif S3 == "🖤":  # Black
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                     elif S3 == "❤":  # Red
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
             if S1 == "❤":  # Red
                 print("Yes S1 Red")
                 if S2 == "💛":  # Yellow
                     print("Yes S2 Yellow")
                     if S3 == "💛":  # Yellow
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                     elif S3 == "🖤":  # Black
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                     elif S3 == "❤":  # Red
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                 if S2 == "🖤":  # Black
                     print("Yes S2 Black")
                     if S3 == "💛":  # Yellow
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
                     elif S3 == "🖤":  # Black
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
 
                     elif S3 == "❤":  # Red
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
 
                 if S2 == "❤":  # Red
                     print("Yes S2 Red")
                     if S3 == "💛":  # Yellow
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
 
                     elif S3 == "🖤":  # Black
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
 
                     elif S3 == "❤":  # Red
-                        print(
-                            f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
-
-                        await message.edit(embed=slotwon)
-
-                        users[str(user.id)]["Wallet"] += bet * 10
-                        users[str(user.id)]["Wins"] += 1
-                        users[str(user.id)]["Earned"] += bet * 10
-                        users["GEarned"] += bet * 10
+                        await win()
 
                     else:
-                        await message.edit(embed=slotlose)
-                        print(
-                            f'S3 = False \n {ctx.author} beted {bet} and lost it all \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Current Wallet:{users[str(user.id)]["Wallet"] - bet} test \n ----------------')
-
-                        users[str(user.id)]["Wallet"] -= bet
-                        users[str(user.id)]["Losses"] += 1
-                        users[str(user.id)]["Lost"] -= bet
-                        users["GLost"] -= bet
+                        await lose()
 
                 else:
-                    await message.edit(embed=slotlose)
-                    print(
-                        f'S3 = False \n {ctx.author} beted {bet} and lost it all \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Current Wallet:{users[str(user.id)]["Wallet"] - bet} test \n ----------------')
-
-                    users[str(user.id)]["Wallet"] -= bet
-                    users[str(user.id)]["Losses"] += 1
-                    users[str(user.id)]["Lost"] -= bet
-                    users["GLost"] -= bet
+                    await lose()
 
             else:
-                await message.edit(embed=slotlose)
-                print(
-                    f'S3 = False \n {ctx.author} beted {bet} and lost it all \n Wallet Before: {users[str(user.id)]["Wallet"]} \n Current Wallet:{users[str(user.id)]["Wallet"] - bet} test \n ----------------')
-
-                users[str(user.id)]["Wallet"] -= bet
-                users[str(user.id)]["Losses"] += 1
-                users[str(user.id)]["Lost"] -= bet
-                users["GLost"] -= bet
+                await lose()
 
         with open("bank.json"
                   "", 'w') as f:
@@ -782,4 +566,4 @@ class cogs(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(cogs(bot))
+    bot.add_cog(Casino(bot))
