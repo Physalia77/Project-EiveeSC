@@ -5,6 +5,8 @@ from datetime import datetime
 
 import discord
 import discord.utils
+import asyncio
+
 # pip install pyfiglet
 import pyfiglet
 from discord.ext import commands
@@ -20,7 +22,11 @@ phy = "316673884172582922"
 scream = "355056076862914561"
 
 
-class Mod(commands.Cog):
+class Moderation(commands.Cog):
+    """
+    Moderations commands for moderators and admins
+    """
+
     def __init__(self, Bot):
         self.bot = Bot
 
@@ -29,9 +35,10 @@ class Mod(commands.Cog):
 
     # Moderator commands
     # Kick
-    @commands.command(name='kick')
+    @commands.command(name='kick', description='[member] (optional reason)')
     @commands.has_permissions(kick_members=True)
     async def kick(self, ctx, member: discord.Member = None, *, reason=None):
+        """Kicks a member from the server, they can return to the server with a new invite."""
         if member is None:
             await ctx.message.channel.send(
                 embed=discord.Embed(
@@ -70,64 +77,72 @@ class Mod(commands.Cog):
                                        color=0xFFC200)
             await ctx.message.channel.send(embed=error_kick)
 
-    # Ban
-    @commands.command(name='ban')
-    @commands.has_permissions(ban_members=True)
-    async def ban(self, ctx, member: discord.Member = None, *, reason=None):
-        Staff = discord.utils.get(ctx.guild.roles, name='Staff')
+    """
+    ChatGPT code for temp/perm ban and mute + error handler
+    """
 
-        if member == None:
-            return await ctx.message.channel.send(
-                embed=discord.Embed(
-                    description=f'**{ctx.message.author}**, please mention somebody to ban.', color=0xFFC200))
+    def parse_time(self, time):
+        if "s" in time or "second" in time:
+            return datetime.timedelta(seconds=int(time.strip("s").strip("second")))
+        elif "m" in time or "minute" in time:
+            return datetime.timedelta(minutes=int(time.strip("m").strip("minute")))
+        elif "h" in time or "hour" in time:
+            return datetime.timedelta(hours=int(time.strip("h").strip("hour")))
+        elif "d" in time or "day" in time:
+            return datetime.timedelta(days=int(time.strip("d").strip("day")))
+        elif "w" in time or "week" in time:
+            return datetime.timedelta(weeks=int(time.strip("w").strip("week")))
+        elif "y" in time or "year" in time:
+            return datetime.timedelta(days=int(time.strip("y").strip("year")) * 365)
+        else:
+            return None
 
-        if member == ctx.message.author:
-            return await ctx.message.channel.send(
-                embed=discord.Embed(
-                    description=f"**{ctx.message.author}**, you cannot ban yourself, silly.", color=0xFFC200))
+    @commands.command()
+    async def mute(self, ctx, member: discord.Member, *, duration=None):
+        if duration:
+            duration = self.parse_time(duration)
+            if duration:
+                role = discord.utils.get(ctx.guild.roles, name="Mute")
+                await member.add_roles(role)
+                await ctx.send(embed=discord.Embed(description=f'{member.mention} has been muted for {duration}.'))
+                await asyncio.sleep(duration)
+                await member.remove_roles(role)
+                await ctx.send(embed=discord.Embed(description=f'{member.mention} has been unmuted.'))
+            else:
+                await ctx.send(embed=discord.Embed(
+                    description="Invalid time format. Please use s, m, h, d, or y for seconds, minutes, hours, days, or years respectively."))
+        else:
+            role = discord.utils.get(ctx.guild.roles, name="Mute")
+            await member.add_roles(role)
+            await ctx.send(embed=discord.Embed(description=f'{member.mention} has been permanently muted.'))
 
-        if member.bot:
-            return await ctx.message.channel.send(
-                embed=discord.Embed(
-                    description=f"You can not ban **" + format(member) + "** because the member is a bot.".format(
-                        member),
-                    color=0xFFC200))
+    @commands.command()
+    async def ban(self, ctx, member: discord.Member, *, duration=None):
+        if duration:
+            duration = self.parse_time(duration)
+            if duration:
+                await member.ban()
+                await ctx.send(embed=discord.Embed(description=f'{member.mention} has been banned for {duration}.'))
+                await asyncio.sleep(duration)
+                await member.unban()
+                await ctx.send(embed=discord.Embed(description=f'{member.mention} has been unbanned.'))
+            else:
+                await ctx.send(embed=discord.Embed(
+                    description="Invalid time format. Please use s, m, h, d, or y for seconds, minutes, hours, days, or years respectively."))
+        else:
+            await member.ban()
+            await ctx.send(embed=discord.Embed(description=f'{member.mention} has been permanently banned.'))
 
-        if Staff in member.roles:
-            return await ctx.message.channel.send(
-                embed=discord.Embed(
-                    description=f"**{ctx.message.author}**, you can't ban another staff member. :warning:",
-                    color=0xFFC200))
-
-        if member.dm_channel is None:
-            await member.create_dm()
-        await member.dm_channel.send(embed=discord.Embed(
-            description=f"You have been banned from **{ctx.guild}** by **{ctx.message.author}** \n **Reason:** {reason} ",
-            color=0xf30000))
-
-        await member.ban(reason=reason)
-        ban_log = discord.Embed(description=f'User **' + member.display_name + f'** has been banned by '
-                                                                               f'**{ctx.message.author}**.'
-                                                                               f' \n **Reason:** ' + reason,
-                                color=0xf30000)
-
-        a_log_channel = Bot.get_channel(902599258857955348)
-        await a_log_channel.send(embed=ban_log)
-        await ctx.send(embed=ban_log)
-        print(f'User **' + member.display_name + f'** has been banned by '
-                                                 f'**{ctx.message.author}**.'
-                                                 f' \n **Reason:** ' + reason)
-
-    @ban.error
-    async def ban_error(self, ctx, error):
-        if isinstance(error, MissingPermissions):
-            error_ban = discord.Embed(description="You don't have permission to ban members :warning:", color=0xFFC200)
-            await ctx.message.channel.send(embed=error_ban)
+    """
+    ChatGPT Code ends for temp/perm ban and mute command with error handler
+    """
 
     # Unban
-    @commands.command(name='unban', pass_context=True)
+
+    @commands.command(name='unban', pass_context=True, description='[member]')
     @commands.has_permissions(ban_members=True)
     async def unban(self, ctx, *, member: discord.Member = None):
+        """Unban a member form the server"""
         banned_user = await ctx.guild.bans()
         member_name, member_discriminator = member.split("#")
         for ban_entry in banned_user:
@@ -156,9 +171,10 @@ class Mod(commands.Cog):
             await ctx.message.channel.send(embed=error_unban)
 
     # Mute
-    @commands.command(name='mute')
+    @commands.command(name='mute', description='[member] (optional reason)')
     @commands.has_permissions(kick_members=True)
     async def mute(self, ctx, member: discord.Member = None, *, reason=None):
+        """Mute a member in the server"""
         log_channel = Bot.get_channel(902599258857955348)
         add_role = discord.utils.get(ctx.guild.roles, name='Muted')
 
@@ -201,9 +217,10 @@ class Mod(commands.Cog):
             await ctx.message.channel.send(embed=error_mute)
 
     # Un mute
-    @commands.command(name='unmute', pass_context=True)
+    @commands.command(name='unmute', pass_context=True, description='[member]')
     @commands.has_permissions(kick_members=True)
     async def unmute(self, ctx, member: discord.Member):
+        """Unmute a member in the server """
         muted_role = discord.utils.get(ctx.guild.roles, name='Muted')
         log_channel = Bot.get_channel(902599258857955348)
 
@@ -240,7 +257,7 @@ class Mod(commands.Cog):
             await ctx.message.channel.send(embed=error_unmute)
 
     # clear [Amount] messages
-    @commands.command(aliases=["msgclear"])
+    @commands.command(aliases=["msgclear"], description='[amount]')
     @commands.has_permissions(kick_members=True)
     async def clear(self, ctx, amount):
         amount = int(amount)
@@ -249,7 +266,9 @@ class Mod(commands.Cog):
 
     # Check bots ping
     @commands.command()
+    @commands.has_permissions(kick_members=True)
     async def ping(self, ctx):
+        """Pings the bot to check the bot's latency"""
         await ctx.send(f'**Pong!** {round(self.bot.latency * 1000)}ms ')
 
     """
@@ -259,19 +278,22 @@ class Mod(commands.Cog):
                                                                                        f"\n **Reported:** " + reason))
     """
 
-    @commands.command()
+    @commands.command(description='[new prefix]')
+    @commands.has_permissions(administrator=True)
     async def changeprefix(self, ctx, prefix):
-        with open('../json/prefixes.json', 'r') as f:
+        """Change the prefix for commands to anything you would like"""
+        with open('prefixes.json', 'r') as f:
             prefixes = json.load(f)
 
         prefixes[str(ctx.guild.id)] = prefix
 
-        with open('../json/prefixes.json', 'w') as f:
+        with open('prefixes.json', 'w') as f:
             json.dump(prefixes, f, indent=4)
 
     @commands.command(pass_context=True)
     @commands.has_permissions(administrator=True)
     async def invite(self, ctx):
+        """Sends a nice invite link"""
         await ctx.message.delete()
         # Creating an invite link
         link = await ctx.channel.create_invite(xkcd=True, max_age=0, max_uses=0)
@@ -354,4 +376,4 @@ class Mod(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Mod(bot))
+    bot.add_cog(Moderation(bot))

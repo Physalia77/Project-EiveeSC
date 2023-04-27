@@ -1,13 +1,11 @@
 import json
 import os.path
-from configparser import ConfigParser
 from inspect import currentframe, getframeinfo
 
 import discord
 import discord.utils
 # pip install pyfiglet
 import pyfiglet
-import self as self
 from discord.ext import commands
 from discord.ext.commands import bot
 from termcolor import colored
@@ -44,42 +42,6 @@ os.chdir(dir_path)
 with open('prefixes.json', 'r') as f:
     prefixes = json.load(f)
 
-"""# Commands
-@bot.command(
-    description=f"Help page for all related topics you could need help with around Eivee")  # Help command, command list
-async def help_all(ctx):
-    embed = discord.Embed(title="Eivee's help command",
-                          description=f" page for all related topics you could need help with around {bot.user.name}",
-                          color=0x3457db)
-    for command in bot.walk_commands():
-        description = command.description
-        if not description or description is None or description == "":
-            description = "No description provided"
-        embed.add_field(
-            name=f"`{prefixes[str(ctx.guild.id)]}{command.name}{command.signature if command.signature is not None else ''}`",
-            value=description)
-        embed.timestamp = datetime.utcnow()
-        embed.set_footer(text='\u200b')
-    await ctx.send(embed=embed)
-
-
-@bot.command(
-    description=f"Help page for all related topics you could need help with around Eivee")  # Help command, command list
-async def help(ctx):
-    embed = discord.Embed(title="Eivee's help command",
-                          description=f" page for all related topics you could need help with around {bot.user.name}",
-                          color=0x3457db)
-    for command in bot.walk_commands():
-        description = command.description
-        if not description or description is None or description == "":
-            description = 'No description provided'
-        embed.add_field(
-            name=f"`{prefixes[str(ctx.guild.id)]}{command.name}{command.signature if command.signature is not None else ''}`",
-            value=description)
-        embed.timestamp = datetime.utcnow()
-        embed.set_footer(text='\u200b')
-    await ctx.send(embed=embed)
-"""
 
 """COGS/EXTENSIONS"""
 
@@ -190,4 +152,4 @@ if __name__ == '__main__':
     print(f'\nCommand List:', ', '.join(commands_list))
 
     """bot.loop.create0_task((change_status()))"""
-    bot.run('OTAyNjA2MzM2NzgzNjgzNTg1.GAVD16.m1m-dx406UP5qu31rIEo6X1S3idNdEW6WUk-LY')
+    bot.run('OTAyNjA2MzM2NzgzNjgzNTg1.GoJ8Ov.i0Q5EhWDjCP-6yciRA-DYmxXEIVm_26F-qDPM8')

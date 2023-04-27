@@ -1,36 +1,14 @@
 # Imports
-import aiosqlite
-import discord
 import datetime
-from datetime import datetime
-import self as self
-from discord.ext import commands, tasks
-from discord.ext.commands import Bot
-import tracemalloc
-import random
-import asyncio
 import json
+from datetime import datetime
+
+import discord
 import discord.utils
-import os
-import aiocron
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
-from inspect import currentframe, getframeinfo
-import sys
-from dislash import InteractionClient, ActionRow, Button, ButtonStyle
-from discord.utils import find, get
-import os.path
-import module
-import youtube_dl
-from discord.ext.commands import MissingPermissions
-import time
-import threading
-from itertools import cycle
+from discord.ext import commands
+from discord.utils import get
+
 # pip install pyfiglet
-import pyfiglet
-from termcolor import colored
-import schedule
-import sqlite3
 
 """
 BOT JOINS SERVER/AUTO MESSAGES
@@ -48,7 +26,11 @@ def load_pre():
 # Bot joins server/auto msg
 
 
-class bot_starter(commands.Cog):
+class Events(commands.Cog):
+    """
+    Managing events, for example welcome messages, discord server setups and ect
+    """
+
     def __init__(self, bot):
         self.bot = bot
         self.last_member = None
@@ -136,4 +118,4 @@ class bot_starter(commands.Cog):
 
 
 def setup(bot):  # a extension must have a setup function
-    bot.add_cog(bot_starter(bot))
+    bot.add_cog(Events(bot))

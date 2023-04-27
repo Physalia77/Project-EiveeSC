@@ -21,6 +21,9 @@ def get_prefix(message):
 
 
 class General_Commands(commands.Cog):
+    """"
+    General commands as in server/user info and more
+    """
     def __init__(self, Bot):
         self.bot = Bot
 
@@ -76,23 +79,6 @@ class General_Commands(commands.Cog):
     # test with buttons
 
     # Help command
-    """ 
-    @commands.command(description=f"Help page for all related topics you could need help with around Eivee")  # Help command, command list
-    async def help(self, ctx):
-        with open('prefixes.json', 'r') as f:
-            prefixes = json.load(f)
-        embed = discord.Embed(title="Eivee's help command",
-                              description=f" page for all related topics you could need help with around {self.bot.user.name}", color=0x3457db)
-        for command in bot.walk_commands():
-            description = command.description
-            if not description or description is None or description == "":
-                description = 'No description provided'
-            embed.add_field(
-                name=f"`{prefixes[str(ctx.guild.id)]}{command.name}{command.signature if command.signature is not None else ''}`", value=description)
-            embed.timestamp = datetime.utcnow()
-            embed.set_footer(text='\u200b')
-        await ctx.send(embed=embed)
-    """
 
     #   Server Information
     @commands.command(name="serverinfo", aliases=["server", "sinfo"])
@@ -101,10 +87,11 @@ class General_Commands(commands.Cog):
             prefixes = json.load(f)
         print(
             f'{datetime.now()}: {ctx.message.author} executed command - {prefixes[str(ctx.guild.id)]}{ctx.invoked_with}')
-        name = str(ctx.guild.name)
+        name = str(ctx.message.guild.name)
+        new_name =  name[:42] + (name[42:] and '..')
         description = str(ctx.guild.description)
 
-        owner = str(ctx.guild.owner)
+        owner = str(ctx.guild.owner_id)
         server_id = str(ctx.guild.id)
         region = str(ctx.guild.region)
         member_count = str(ctx.guild.member_count)
@@ -112,12 +99,12 @@ class General_Commands(commands.Cog):
         icon = str(ctx.guild.icon_url)
 
         embed = discord.Embed(
-            title=name + " Server Information",
+            title=new_name + " Server Information",
             description=description,
             color=0x3457db
         )
         embed.set_thumbnail(url=icon)
-        embed.add_field(name="Owner:", value=owner, inline=True)
+        embed.add_field(name="Owner:", value=f"<@{owner}>", inline=True)
         embed.add_field(name="Server ID:", value=server_id, inline=True)
         embed.add_field(name="Region:", value=region, inline=True)
         embed.add_field(name="Member Count:", value=member_count, inline=True)

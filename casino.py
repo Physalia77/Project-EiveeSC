@@ -56,6 +56,10 @@ async def update_bank(user, change=0, mode="Wallet"):
 
 
 class Casino(commands.Cog):
+    """
+    Gamble, gamble more money
+    """
+
     def init(self, Bot):
         pass
 
@@ -274,7 +278,7 @@ class Casino(commands.Cog):
 
                     await ctx.send(embed=win)
 
-                    users[str(user.id)]["Wallet"] += bet * 3
+                    users[str(user.id)]["Wallet"] += bet * 2
 
                     with open("bank.json", 'w') as f:
 
@@ -381,9 +385,9 @@ class Casino(commands.Cog):
             slotbedS1 = discord.Embed(title=f"Slot Machine: You beted {bet}, lets see if you win",
                                       description=f"{S1} ❔ ❔", color=discord.Color.light_gray())
             slotbedS2 = discord.Embed(title=f"Slot Machine: You beted {bet}, lets see if you win",
-                                      description=f"{S1, S2} ❔", color=discord.Color.light_gray())
+                                      description=f"{S1} {S2} ❔", color=discord.Color.light_gray())
             slotbedS3 = discord.Embed(title=f"Slot Machine: You beted {bet}, lets see if you win",
-                                      description=f"{S1, S2, S3}", color=discord.Color.light_gray())
+                                      description=f"{S1} {S2} {S3}", color=discord.Color.light_gray())
             global message
             message = await ctx.send(embed=slotbed)
 
@@ -394,7 +398,7 @@ class Casino(commands.Cog):
             await asyncio.sleep(1)
             await message.edit(embed=slotbedS3)
 
-        async def lose():
+        async def lose():  # Lose message
             global message
             slotlose = discord.Embed(title=f"Sorry, you just lost {bet} coins",
                                      description=f"{S1, S2, S3}", color=discord.Color.red())
@@ -408,7 +412,7 @@ class Casino(commands.Cog):
             users[str(user.id)]["Lost"] -= bet
             users["GLost"] -= bet
 
-        async def win():
+        async def win():  # Win message
             global message
             slotwon = discord.Embed(title=f"Congrats!!! You just won {bet * 10} coins",
                                     description=f"{S1, S2, S3}", color=discord.Color.green())
@@ -419,12 +423,12 @@ class Casino(commands.Cog):
 
             await message.edit(embed=slotwon)
 
-            users[str(user.id)]["Wallet"] += bet * 10
+            users[str(user.id)]["Wallet"] += bet * 5
             users[str(user.id)]["Wins"] += 1
-            users[str(user.id)]["Earned"] += bet * 10
-            users["GEarned"] += bet * 10
+            users[str(user.id)]["Earned"] += bet * 5
+            users["GEarned"] += bet * 5
 
-        async def jackpot():
+        async def jackpot():  # Jackpot message
             global message
             slotjackpot = discord.Embed(title=f"CONGRATS, YOU WON THE JACKPOT {bet * 1000} {usd}",
                                         description=f"{S1, S2, S3}", color=discord.Color.dark_green())
@@ -432,30 +436,31 @@ class Casino(commands.Cog):
                 f'S3 = True \n {ctx.author} beted {bet} and won {bet * 10} \n Wallet Before: {users[str(user.id)]["Wallet"]}'
                 f' \n Now has:{users[str(user.id)]["Wallet"] + bet * 10} test \n ----------------')
             await message.edit(embed=slotjackpot)
-            users[str(user.id)]["Wallet"] += bet * 1000
+            users[str(user.id)]["Wallet"] += bet * 500
             users[str(user.id)]["Wins"] += 1
-            users[str(user.id)]["Earned"] += bet * 1000
-            users["GEarned"] += bet
+            users[str(user.id)]["Earned"] += bet * 500
+            users["GEarned"] += bet * 500
 
         # Code
-        if bet is None:
+        if bet is None:  # Checks if user didn't forget to place a bet amount
             error_slot = discord.Embed(title=f"ERROR!",
                                        description=f"You must place a bet! The lowest amount of coins you can bet is 100 or highest is 100,000.",
                                        color=discord.Color.orange())
             return await ctx.send(embed=error_slot)
 
-        if bet < 100:
+        if bet < 100:  # Checks if user don't bet less than 100 points
             error_slot = discord.Embed(title=f"ERROR!",
                                        description=f"You can't bet {bet}!!! The bet must be 100 coins or more!",
                                        color=discord.Color.orange())
             return await ctx.send(embed=error_slot)
-        if bet > 100000:
+
+        if bet > 100000:  # Checks if user don't bet more than 100 000
             error_slot = discord.Embed(title=f"ERROR!",
                                        description=f"You can't bet {bet}!!! The highest amount of coins you can bet is 100,000!",
                                        color=discord.Color.orange())
             return await ctx.send(embed=error_slot)
 
-        if bet > users[str(user.id)]["Wallet"]:
+        if bet > users[str(user.id)]["Wallet"]:  # Checks if user is betting more than what exists in their wallet
             error_slot = discord.Embed(title=f"Bank Error!",
                                        description=f"You don't have that much coins in your wallet, check your bank!!",
                                        color=discord.Color.orange())
@@ -464,103 +469,16 @@ class Casino(commands.Cog):
         else:
             await message()
 
-            if S1 == S2 == S3:  # Green Circle
-                jackpot()
+            if S1 == S2 == S3:  # Win jackpot if you get 3 red hearts
+                await jackpot()  # Wins 1000x times what you bet
 
-            if S1 == "💛":  # Yellow
-                print("Yes S1 Yellow")
-                if S2 == "💛":  # Yellow
-                    print("Yes S2 Yellow")
-                    if S3 == "💛":  # Yellow
-                        await win()
-                    elif S3 == "🖤":  # Black
-                        await win()
-                    elif S3 == "❤":  # Red
-                        await win()
-                if S2 == "🖤":  # Black
-                    print("Yes S2 Black")
-                    if S3 == "💛":  # Yellow
-                        await win()
-                    elif S3 == "🖤":  # Black
-                        await win()
-                    elif S3 == "❤":  # Red
-                        await win()
-                if S2 == "❤":  # Red
-                    print("Yes S2 Red")
-                    if S3 == "💛":  # Yellow
-                        await win()
-                    elif S3 == "🖤":  # Black
-                        await win()
-                    elif S3 == "❤":  # Red
-                        await win()
-            if S1 == "🖤":  # Black
-                print("Yes S1 Black")
-                if S2 == "💛":  # Yellow
-                    print("Yes S2 Yellow")
-                    if S3 == "💛":  # Yellow
-                        await win()
-                    elif S3 == "🖤":  # Black
-                        await win()
-                    elif S3 == "❤":  # Red
-                        await win()
-                if S2 == "🖤":  # Black
-                    print("Yes S2 Black")
-                    if S3 == "💛":  # Yellow
-                        await win()
-                    elif S3 == "🖤":  # Black
-                        await win()
-                    elif S3 == "❤":  # Red
-                        await win()
-                if S2 == "❤":  # Red
-                    print("Yes S2 Red")
-                    if S3 == "💛":  # Yellow
-                        await win()
-                    elif S3 == "🖤":  # Black
-                        await win()
-                    elif S3 == "❤":  # Red
-                        await win()
-            if S1 == "❤":  # Red
-                print("Yes S1 Red")
-                if S2 == "💛":  # Yellow
-                    print("Yes S2 Yellow")
-                    if S3 == "💛":  # Yellow
-                        await win()
-                    elif S3 == "🖤":  # Black
-                        await win()
-                    elif S3 == "❤":  # Red
-                        await win()
-                if S2 == "🖤":  # Black
-                    print("Yes S2 Black")
-                    if S3 == "💛":  # Yellow
-                        await win()
-                    elif S3 == "🖤":  # Black
-                        await win()
-
-                    elif S3 == "❤":  # Red
-                        await win()
-
-                if S2 == "❤":  # Red
-                    print("Yes S2 Red")
-                    if S3 == "💛":  # Yellow
-                        await win()
-
-                    elif S3 == "🖤":  # Black
-                        await win()
-
-                    elif S3 == "❤":  # Red
-                        await win()
-
-                    else:
-                        await lose()
-
-                else:
-                    await lose()
-
+            elif all(symbol in ["💛", "🖤", "❤"] for symbol in (S1, S2, S3)):  # Checks for 3 hearts, color doesn't matter
+                await win()  # Wins 10x times what you bet
             else:
-                await lose()
+                await lose()  # Lose, you lose all the money you bet
 
-        with open("bank.json"
-                  "", 'w') as f:
+        with open("bank.json"  
+                  "", 'w') as f:  # Gives you the new value in your wallet
             json.dump(users, f)
         return
 

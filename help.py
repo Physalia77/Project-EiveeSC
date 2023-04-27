@@ -62,7 +62,7 @@ class Help(commands.Cog):
         pr = prefixes[str(ctx.guild.id)].replace("{''}", ' ')
         # !SET THOSE VARIABLES TO MAKE THE COG FUNCTIONAL!
         prefix = pr  # ENTER YOUR PREFIX - loaded from config, as string or however you want!
-        version = "1.8"  # enter version of your code
+        version = "0.4"  # enter version of your code
 
         # setting owner name - if you don't wanna be mentioned remove line 49-60 and adjust help text (line 88)
         owner = "316673884172582922"  # ENTER YOU DISCORD-ID
@@ -89,7 +89,7 @@ class Help(commands.Cog):
                 cogs_desc += f'`{cog}` {self.bot.cogs[cog].__doc__}\n'
 
             # adding 'list' of cogs to embed
-            emb.add_field(name='Modules', value=cogs_desc, inline=False)
+            emb.add_field(name='\nModules', value=cogs_desc, inline=False)
 
             # integrating trough uncategorized commands
             commands_desc = ''
@@ -101,10 +101,10 @@ class Help(commands.Cog):
 
             # adding those commands to embed
             if commands_desc:
-                emb.add_field(name='Not belonging to a module', value=commands_desc, inline=False)
+                emb.add_field(name='\nNot belonging to a module', value=commands_desc, inline=False)
 
             # setting information about author
-            emb.add_field(name="About", value=f"Eviee bot is developed by Physalia#0690, based on discord.py.\n\
+            emb.add_field(name="\nAbout", value=f"Eviee bot is developed by Physalia#0690, based on discord.py.\n\
                                     This version of it is maintained by {owner}\n\
                                     Please visit https://github.com/Physalia77/Project-EiveeSC/issues to submit ideas or bugs.")
             emb.set_footer(text=f"Bot is running {version}")
@@ -126,7 +126,7 @@ class Help(commands.Cog):
                     for command in self.bot.get_cog(cog).get_commands():
                         # if cog is not hidden
                         if not command.hidden:
-                            emb.add_field(name=f"`{prefix}{command.name}`", value=command.help, inline=False)
+                            emb.add_field(name=f"`{prefix}{command.name} {command.description}`", value=command.help, inline=False)
                     # found cog - breaking loop
                     break
 
