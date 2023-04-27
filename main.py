@@ -152,4 +152,4 @@ if __name__ == '__main__':
     print(f'\nCommand List:', ', '.join(commands_list))
 
     """bot.loop.create0_task((change_status()))"""
-    bot.run('OTAyNjA2MzM2NzgzNjgzNTg1.GoJ8Ov.i0Q5EhWDjCP-6yciRA-DYmxXEIVm_26F-qDPM8')
+    bot.run('TOKEN')
